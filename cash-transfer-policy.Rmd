@@ -1,0 +1,191 @@
+---
+title: "Using the First-Difference (FD), Fixed-Effects (FE), and Difference-in-Difference (DiD) estimators to analyze the impact of a cash-transfer program"
+author: "Linus Ghanadan"
+---
+
+## [Link to GitHub repository](https://github.com/linusghanadan/cash-transfer-policy)
+
+## Question
+
+What was the average treatment effect (ATE) of the 1998 Progresa cash-transfer program on the value of animals owned by a household?
+
+## Background
+
+According to the [World Health Organization](https://www.ncbi.nlm.nih.gov/books/NBK258728/), cash-transfer programs are a form of social assistance assisting beneficiaries who are vulnerable to impoverishment without support. These programs assist beneficiaries through providing re-occurring cash payments, which can either be provided unconditionally or conditional to certain requirements (e.g., periodic health visits). Through boosting household income, the goal of cash-transfer programs is usually to improve the food security of families and provide them the resources to get medical care and prioritize childhood education.
+
+## Data
+
+Our data comes from a [2012 research paper published in the American Economic Journal](https://www.aeaweb.org/articles?id=10.1257/app.4.1.164), which looks at the Progresa cash-transfer program, which was implemented in rural Mexico villages in 1998. Eligible households that were randomly selected to be part of the program were provided bi-monthly cash-transfers of up to 550 pesos per month. These cash-transfers were conditional on children attending school, family members obtaining preventive medical care, and attending health-related education talks. In total, over 18,000 households were part of the Progresa program.
+
+**The outcome and treatment variables are:**
+
+- **vani** = value of animals owned by household (in 1997 USD)
+
+- **treatment** = dummy variable indicating whether an individual was part of the cash-transfer program (equal to 1 if the individual was part of the program)
+
+**There are 55 control variables, including:**
+
+- **dirtfloor97** = dummy variable indicating whether a household had a dirt floor in 1997
+
+- **electricity97** = dummy variable indicating whether a household had electricity in 1997
+
+- **homeown97** = dummy variable indicating whether a household owned a house in 1997
+
+- **female_hh** = dummy variable indicating whether a household has a female head of household
+
+- **age_hh** = head of household age
+
+- **educ_hh** = head of household years of education
+
+## Setup
+
+```{r}
+# Import packages
+library(tidyverse)
+library(plm)
+library(lmtest)
+library(estimatr)
+library(Hmisc)
+library(RItools)
+library(MatchIt)
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+## Load the datasets
+progresa_pre_1997 <- read_csv(here::here("data", "progresa_pre_1997.csv"))
+progresa_post_1999 <- read_csv(here::here("data", "progresa_post_1999.csv"))
+
+## Append post to pre dataset 
+progresa <- rbind(progresa_pre_1997, progresa_post_1999)
+```
+
+## Comparison of pre-treatment characteristics in the treatment and control groups
+
+#### Dirt floor in 1997 (dummy variable)
+
+```{r}
+# Subset data for treatment and control groups
+treatment_group <- progresa[progresa$treatment == 1, ]
+control_group <- progresa[progresa$treatment == 0, ]
+
+# Compare proportion of units that had dirt floor in 1997 (binary variable) between treatment and control group
+prop.test(x = c(sum(treatment_group$dirtfloor97, na.rm = TRUE), sum(control_group$dirtfloor97, na.rm = TRUE)),
+          n <- c(length(treatment_group$dirtfloor97), length(control_group$dirtfloor97)))
+```
+
+#### Electricity in 1997 (dummy variable)
+
+```{r}
+# Compare proportion of units that had electricity in 1997 (binary variable) between treatment and control group
+prop.test(x = c(sum(treatment_group$electricity97, na.rm = TRUE), sum(control_group$electricity97, na.rm = TRUE)),
+          n <- c(length(treatment_group$electricity97), length(control_group$electricity97)))
+```
+
+#### Owned home in 1997 (dummy variable)
+
+```{r}
+# Compare proportion of units that owned home in 1997 (binary variable) between treatment and control group
+prop.test(x = c(sum(treatment_group$homeown97, na.rm = TRUE), sum(control_group$homeown97, na.rm = TRUE)),
+          n <- c(length(treatment_group$homeown97), length(control_group$homeown97)))
+```
+
+#### Female head of house (dummy variable)
+
+```{r}
+# Compare proportion of units that had female head of house (binary variable) between treatment and control group
+prop.test(x = c(sum(treatment_group$female_hh, na.rm = TRUE), sum(control_group$female_hh, na.rm = TRUE)),
+          n <- c(length(treatment_group$female_hh), length(control_group$female_hh)))
+```
+
+#### Head of house age
+```{r}
+# Mean difference t-test for head of house age
+t.test(age_hh ~ treatment, data = progresa)
+```
+
+#### Head of house years of education
+```{r}
+# Mean difference t-test for head of house years of education
+t.test(educ_hh ~ treatment, data = progresa)
+```
+
+#### Findings
+
+For several of the covariates, there are statistically significant differences between the pre-treatment characteristics of the treated and untreated groups. This indicates that there were likely systemic differences between the pre-treatment characteristics of individuals that were part of the cash-transfer program and those that were not, and if this is the case, simply controlling for all covariates is an insufficient method to estimate the ATE, since systemic differences means that there are differences between the groups that extend beyond what we can control for.
+
+Because there seem to be systemic differences between the pre-treatment characteristics of the treated and untreated group, we will use more advanced techniques to estimate the ATE. Since we are working with panel data, our options for advanced techniques include the FD, FE, or DiD estimators.
+
+## Estimating ATE with the First-Difference (FD) estimator
+
+Because a FD model controls for the differences in the explanatory variables between two time periods, the estimator is effective at removing bias from omitted variables that result from differences between time periods. If we think that the potential ommited variables (i.e., a variable that is influencing our outcome variable but is not included as a covariate) that are most important are likely to vary over different time periods, then using the FD estimator is the best approach for estimating ATE. For example, if the head of house having to deal with a family emergency was by far the most influential omitted variable, the FD estimator would likely be the best approach for estimating ATE, since having to deal with a family emergency is something that would likely vary over different time periods.
+
+```{r}
+# i. Sort the panel data in the order in which you want to take differences, i.e. by household and time.
+progresa_sorted <- progresa %>% 
+  arrange(hhid, year) %>%
+  group_by(hhid) %>%
+  
+  # ii. Calculate the first difference using the lag function from the dplyr package.
+  mutate(vani_fd = vani - dplyr::lag(vani)) 
+
+# iii. Estimate manual first-difference regression (Estimate the regression using the newly created variables.)
+fd_manual <- lm(vani_fd ~ treatment, data = progresa_sorted)
+
+# Extracting the coefficients table
+summary_reg <- summary(fd_manual)
+summary_reg$coefficients %>% 
+  kbl(caption = "FD estimator") %>%  # Generate table
+  kable_classic(full_width = FALSE)
+```
+
+Our FD regression tells us that program participants experienced a change in the value of their animal holdings that was, on average, 287.90 dollars greater than the change experienced by non-participants from 1997 to 1999. Our standard error is 85.60 dollars, and our low p-value means we reject the null hypothesis that the difference is zero at an alpha level of 0.01.
+
+## Estimating ATE with the Fixed-Effects (FE) estimator
+
+A FE model directly controls for omitted variables that do no change over time, so the estimator is effective at removing bias that comes from time-invariant characteristics. If we think that the potential ommited variables (i.e., a variable that is influencing our outcome variable but is not included as a covariate) that are most important are likely stay constant over different time periods, then using the FE estimator is the best approach for estimating ATE. For example, if the head of house being an only child was by far the most influential omitted variable, the FE estimator would likely be the best approach for estimating ATE, since being an only child as an adult is unlikely to be something that would change over time periods.
+
+```{r}
+# ESTIMATE THE BASIC 'WITHIN' FIXED EFFECTS REGRESSION
+# NOTE "plm" ONLY PRODUCES CLUSTER-ROBUST STANDARD ERRORS
+within_reg <- plm(vani ~ treatment, index = c("state", "year"), model = c("within"), effect = c("twoways"), data = progresa)
+
+# Extracting the coefficients table
+summary_reg <- summary(within_reg)
+summary_reg$coefficients %>% 
+  kbl(caption = "FE estimator") %>%  # Generate table
+  kable_classic(full_width = FALSE)
+```
+
+Our FE regression tells us that program participants experienced a change in the value of their animal holdings that was, on average, 231.9 dollars less than the change experienced by non-participants within each State from 1997 to 1999. Our cluster-standard error is 55.9 dollars, and our low p-value means we reject the null hypothesis that the difference is zero at an alpha level of 0.01. The standard error being cluster-robust means that it accounts for the fact that observations in the same State as one another will have results that are not entirely independent of one another.
+
+## Estimating ATE with the Difference-in-Difference (DiD) estimator
+
+If we think that our omitted variables are likely to be a mix of variables that stay constant and change across time periods (and treatment occurs only at a single point in time), we are best off using the DiD estimator, which calculates ATE as the difference in the mean outcome variable in the treated group before and after the time of treatment minus the difference in the mean outcome variable in the untreated group before and after the time of treatment.
+
+```{r}
+# Create the dummy variables
+progresa$treatment_dummy <- ifelse(progresa$treatment == 1, 1, 0)
+progresa$post_treatment_time_dummy <- ifelse(progresa$year == 1999, 1, 0)
+progresa$interaction_dummy <- progresa$treatment_dummy * progresa$post_treatment_time_dummy
+
+# OLS regression
+ols_reg <- lm(vani ~ treatment_dummy + post_treatment_time_dummy + interaction_dummy, data = progresa)
+
+# Present Regressions in Table
+summary_reg <- summary(ols_reg)
+summary_reg$coefficients %>% 
+  kbl(caption = "DiD estimator") %>%  # Generate table
+  kable_classic(full_width = FALSE)
+```
+
+From our regression, we estimate the average effect of the cash-transfer program on value of animal holdings to be about 321.48 USD (where program participants had a higher average value of animal holdings at the end of the program), with a standard error of about 112.48 USD. For this to be interpreted as the ATE, we have to assume that the control group (units that did not participate in program) provides a valid counterfactual for what would have happened to units in our treatment group (program participants) had they not participated in the program. Furthermore, our p-value of 0.004 tells us that, at an alpha level of 0.01, we reject the null hypothesis that there was no average effect of the cash transfer program on value of animal holdings.
+
+The coefficient on our treatment dummy variable tells us that we estimate the mean difference in the outcome variable (value of animal holdings) between the treatment group (program participants) and the control group (non-participants) before the program started to have been 271.26 USD (where program participants had a lower average value of animal holdings than non-participants prior to the start of the program), with a standard error of 78.08 USD. Our p-value of <0.01 tells us that, at an alpha level of 0.01, we reject the null hypothesis that there was a mean difference of zero.
+
+The coefficient on our post treatment time dummy variable tells us that we estimate the mean change in the outcome variable (value of animal holdings) between the beginning and end of the program for the control group (non-participants in program) to be 1,170.04 USD (where non-participants had a lower average value of animal holdings when the program ended than when it started), with a standard error of 84.50 USD. Our p-value of 0.0005 tells us that, at an alpha level of 0.001, we reject the null hypothesis that there was a mean change of zero.
+
+## Conclusion
+
+Overall, the cash-transfer program appears to have been quite successful at boosting the value of animals owned by a household. In this cash-transfer program, all treatment occurred at the same time and we expect our omitted variables to be a mix of variable that change and stay constant across time periods, so the DiD estimator is likely the best method for estimating ATE in our situation. Using the DiD estimator, we estimated the average effect of the cash-transfer program on value of animal holdings was about 321.48 USD (where program participants had a higher average value of animal holdings at the end of the program), with a standard error of about 112.48 USD. For this to be interpreted as the ATE, we have to assume that the control group (units that did not participate in program) provides a valid counterfactual for what would have happened to units in our treatment group (program participants) had they not participated in the program.
