@@ -4,7 +4,7 @@
 
 This project was completed for my Policy Evaluation class, taken as part of my Master's program at UC Santa Barbara. Provided with data and questions, I carried out this analysis using appropriate causal inference modeling techniques.
 
-## Question
+### Question
 
 How did the 1998 Prospera cash-transfer program impact the value of a household's animal holdings?
 
