@@ -4,13 +4,13 @@
 
 This project was completed for my Policy Evaluation class, taken as part of my Master's program at UC Santa Barbara. Provided with data and questions, I carried out this analysis using appropriate causal inference modeling techniques.
 
+## Question
+
+How did the 1998 Prospera cash-transfer program impact the value of a household's animal holdings?
+
 ### Project Summary
 
 Compared pre-treatment characteristics in the treatment and control groups of the 1998 Prospera cash-transfer program. Estimated the Average Treatment Effect (ATE) of the program on a household’s value of owned animals with the First-Difference, Fixed-Effects, and Difference-in-Difference estimators.
-
-### Background
-
-According to the [World Health Organization](https://www.ncbi.nlm.nih.gov/books/NBK258728/), cash-transfer programs are a form of social assistance assisting beneficiaries who are vulnerable to impoverishment without support. These programs assist beneficiaries through providing re-occurring cash payments, which can either be provided unconditionally or conditional to certain requirements (e.g., periodic health visits). Through boosting household income, the goal of cash-transfer programs is usually to improve the food security of families and provide them the resources to get medical care and prioritize childhood education.
 
 ### Data
 
