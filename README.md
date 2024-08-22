@@ -1,5 +1,7 @@
 ## Impact Analysis of a 1998 Cash-Transfer Program in Rural Mexico
 
+### [Link to Blog (with R code)](https://linusghanadan.github.io/blog/2024-3-6-post/)
+
 ### Context
 
 This project was completed for my Policy Evaluation class, taken as part of my Master's program at UC Santa Barbara. Provided with data and questions, I carried out this analysis using appropriate causal inference modeling techniques.
