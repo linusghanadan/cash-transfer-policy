@@ -8,7 +8,7 @@ This project was completed for my Policy Evaluation class, taken as part of my M
 
 How did the 1998 Prospera cash-transfer program impact the value of a household's animal holdings?
 
-### Project Summary
+### Analysis Summary
 
 Compared pre-treatment characteristics in the treatment and control groups of the 1998 Prospera cash-transfer program. Estimated the Average Treatment Effect (ATE) of the program on a household’s value of owned animals with the First-Difference, Fixed-Effects, and Difference-in-Difference estimators.
 
