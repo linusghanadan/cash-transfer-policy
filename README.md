@@ -1,6 +1,6 @@
 ## Impact Analysis of a 1998 Cash-Transfer Program in Rural Mexico
 
-### [Link to Blog (with R code)](https://linusghanadan.github.io/blog/2024-3-6-post/)
+### [Link to Blog (includes R code, code output, and written analysis)](https://linusghanadan.github.io/blog/2024-3-6-post/)
 
 ### Context
 
