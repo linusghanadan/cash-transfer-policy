@@ -1,5 +1,7 @@
 ## Econometric Analysis of 1998 Mexican Cash-Transfer Program
 
+### [Link to Blog (includes R code, code output, and written analysis)](https://linusghanadan.github.io/blog/2024-3-6-post/)
+
 ### Context
 
 This project was completed for my Policy Evaluation class, taken as part of my Master's program at UC Santa Barbara. Provided with data and questions, I carried out this analysis using appropriate causal inference modeling techniques.
