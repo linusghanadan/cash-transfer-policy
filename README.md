@@ -1,4 +1,4 @@
-## Impact Analysis of 1998 Mexican Cash-Transfer Program
+## Quantitative Policy Analysis of 1998 Mexican Cash-Transfer Program
 
 ### [Link to Blog (includes R code, code output, and written analysis)](https://linusghanadan.github.io/blog/2024-3-6-post/)
 
