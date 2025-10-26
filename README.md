@@ -1,4 +1,4 @@
-## Econometric Analysis of 1998 Mexican Cash-Transfer Program
+## Econometric Analysis of Cash-Transfer Program
 
 ### [Link to Blog (includes R code, code output, and written analysis)](https://linusghanadan.github.io/blog/2024-3-6-post/)
 
@@ -6,15 +6,15 @@
 
 This project was completed for my Policy Evaluation class, taken as part of my Master's program at UC Santa Barbara. Provided with data and questions, I carried out this analysis using appropriate causal inference modeling techniques.
 
-### Question
+### Central Question
 
 How did the 1998 Prospera cash-transfer program impact the value of a household's animal holdings?
 
-### Analysis Summary
+### Summary of Analysis
 
 Compared pre-treatment characteristics in the treatment and control groups of the 1998 Prospera cash-transfer program. Estimated the Average Treatment Effect (ATE) of the program on a household’s value of owned animals with the First-Difference, Fixed-Effects, and Difference-in-Difference estimators.
 
-### Data
+### Notes on Data
 
 Our data comes from a [2012 research paper published in the American Economic Journal](https://www.aeaweb.org/articles?id=10.1257/app.4.1.164) looking at the Progresa cash-transfer program, which was implemented in rural Mexican villages in 1998. Eligible households that were randomly selected to be part of the program were provided bi-monthly cash-transfers of up to 550 pesos per month. These cash-transfers were conditional on children attending school, family members obtaining preventive medical care, and attending health-related education talks. In total, over 17,000 households were part of the Progresa program.
 
